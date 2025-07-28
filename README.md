@@ -33,7 +33,7 @@ Enterprise-grade CRM with AI-powered lead allocation, real-time analytics, and m
 
 ```bash
 # Clone repository
-git clone https://github.com/[your-username]/sales-crm-system.git
+git clone https://github.com/dayaparan/sales-crm-system.git
 
 # Install dependencies
 npm install
