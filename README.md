@@ -8,7 +8,7 @@ Enterprise-grade CRM with AI-powered lead allocation, real-time analytics, and m
 
 **Client**: Dayaparan Fine Acers  
 **Developer**: Yazdan Shaikh  
-**Timeline**: 20-day sprint (Started: [Today's Date])  
+**Timeline**: 20-day sprint (Started: [27th July 2028)  
 **Stack**: Next.js 14, Node.js 20+, PostgreSQL 15, TimescaleDB, Redis, Docker
 
 ## 📋 Core Features
