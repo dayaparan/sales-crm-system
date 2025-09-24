@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid;
+  border-color: #3b38ca transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 10px; /* Width of the vertical scrollbar */
+  height: 10px; /* Height of the horizontal scrollbar */
+}
+
+/* Scrollbar track */
+::-webkit-scrollbar-track {
+  background: transparent; /* Light gray track */
+  border-radius: 5px; /* Rounded edges */
+  
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent; /* Match track color */
+}
+
+/* Scrollbar styling for Firefox */
+* {
+  scrollbar-width: thin; /* Slim scrollbar */
+  scrollbar-color: #D4AF37 #101b3a; /* Thumb and track colors */
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+
+.react-tel-input .form-control {
+  background: #0c1221 !important;
+  border: 1px solid #475569 !important;
+}
+
+.react-tel-input .flag-dropdown{
+  background: #0c1221 !important;
+  border: 1px solid #475569 !important;
+
+}
+
+.react-tel-input .flag-dropdown:hover{
+  background: #0c1221 !important;
+  border: 1px solid #475569 !important;
+
+}

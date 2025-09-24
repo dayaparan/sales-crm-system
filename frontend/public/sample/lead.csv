@@ -1,0 +1,5 @@
+firstName,lastName,email,phone,branch_code
+John,Doe,john.doe@example.com,+1234567890,DUB001
+Jane,Smith,jane.smith@example.com,+9876543210,MUS001
+Michael,Brown,michael.brown@example.com,+1122334455,DUB001
+Sarah,Wilson,sarah.wilson@example.com,+5544332211,MUS001

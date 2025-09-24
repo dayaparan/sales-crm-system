@@ -1,0 +1,531 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Branch model representing organizational branches
+model Branch {
+  id String @id @default(uuid()) @map("id")
+
+  // Relations
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation("UserCreatedBranches", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  // Many-to-many relation for managers
+  managers User[] @relation("BranchManagers")
+
+  // Relation for users associated with this branch
+  users User[] @relation("UserToBranch")
+
+  territories  Territory[]   @relation("BranchToTerritory")
+  leads        Lead[]        @relation("BranchToLeads")
+  paymentPlans PaymentPlan[] @relation("PaymentPlanToBranch")
+  // projects     Project[]     @relation("ProjectToBranch")
+  salesModels  SalesModel[]  @relation("SalesModelToBranch")
+  unitTypes    UnitType[]    @relation("UnitTypeToBranch")
+
+  // Basic Info
+  name     String @map("name")
+  code     String @map("code")
+  country  String @map("country")
+  city     String @map("city")
+  address  String @map("address")
+  timezone String @map("timezone")
+  currency String @map("currency")
+
+  // Contact
+  phone String @map("phone")
+  email String @map("email")
+
+  // Status & Timestamps
+  status        Boolean         @default(true) @map("status")
+  deletedAt     DateTime?       @map("deleted_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  BranchManager BranchManager[]
+
+  @@index([createdById])
+  @@index([status])
+  @@map("branches")
+}
+
+// Explicit relation table for many-to-many relationship between Branch and User (managers)
+model BranchManager {
+  branchId String @map("branch_id")
+  userId   String @map("user_id")
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([branchId, userId])
+  @@map("branch_managers")
+}
+
+// PaymentPlan model representing payment plans for projects
+model PaymentPlan {
+  id                 String    @id @default(uuid()) @map("id")
+  userId             String?   @map("user_id")
+  user               User?     @relation("PaymentPlanToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  branchId           String?   @map("branch_id")
+  branch             Branch?   @relation("PaymentPlanToBranch", fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  name               String    @map("name")
+  modelType          String?   @map("modelType")
+  duration           String?   @map("duration")
+  downPayment        String?   @map("downPayment")
+  installment        String?   @map("installment")
+  discountPercentage String?   @map("discountPercentage")
+  guaranteedRoi      String?   @map("guaranteedRoi")
+  specialCondition   String?   @map("specialCondition")
+  status             Boolean   @default(true) @map("status")
+  deletedAt          DateTime? @map("deleted_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  leads              Lead[]    @relation("PaymentPlanToLeads")
+
+  @@index([userId])
+  @@index([status])
+  @@map("payment_plans")
+}
+
+// SalesModel model representing sales models or strategies
+model SalesModel {
+  // Unique identifier for the sales model
+  id String @id @default(uuid()) @map("id")
+
+  // Associated user (optional)
+  userId String? @map("user_id")
+  user   User?   @relation("SalesModelToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  branchId String? @map("branch_id")
+  branch   Branch? @relation("SalesModelToBranch", fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  name                 String        @map("name") // Required sales model name
+  ownershipType        OwnershipType @map("ownership_type") // Type of ownership (e.g., FULL, FRACTIONAL)
+  minInvestmentLakhs   Float?        @map("min_investment_lakhs") // Minimum investment in lakhs (Indian currency)
+  buybackTerms         String?       @map("buyback_terms") // Terms for buyback agreement
+  usageRights          UsageRights   @map("usage_rights") // Rights associated with usage (e.g., EXCLUSIVE, SHARED)
+  guaranteedRoiPercent Float?        @map("guaranteed_roi_percent") // Guaranteed return on investment percentage
+  profitSharePercent   Float?        @map("profit_share_percent") // Profit share percentage
+  status               Boolean       @default(true) @map("status") // Active/inactive sales model
+  deletedAt            DateTime?     @map("deleted_at") // Soft delete support
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  leads Lead[] @relation("SalesModelToLeads")
+
+  // Indexes for common queries
+  @@index([userId])
+  @@index([status])
+  @@index([ownershipType])
+  @@map("sales_models")
+}
+
+// Enum for ownership type in SalesModel
+enum OwnershipType {
+  FULL
+  FRACTIONAL
+  LEASE
+  TIMESHARE
+}
+
+// Enum for usage rights in SalesModel
+enum UsageRights {
+  EXCLUSIVE
+  SHARED
+  LIMITED
+}
+
+// Territory model representing sales territories
+model Territory {
+  id        String    @id @default(uuid()) @map("id")
+  userId    String?   @map("user_id")
+  user      User?     @relation("TerritoryToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  branchId  String?   @map("branch_id")
+  branch    Branch?   @relation("BranchToTerritory", fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  name      String    @map("name") // Required territory name
+  status    Boolean   @default(true) @map("status")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  leads     Lead[]    @relation("TerritoryToLeads")
+
+  @@index([userId])
+  @@index([branchId])
+  @@index([status])
+  @@map("territories")
+}
+
+// Role model representing user roles with permission
+// model Role {
+//   id         String    @id @default(uuid()) @map("id")
+//   userId     String?   @map("user_id")
+//   user       User?     @relation("RoleToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+//   name       String    @map("name") // Required role name
+//   permission String[]  @default([]) @map("permission") // Changed to permission for clarity
+//   status     Boolean   @default(true) @map("status")
+//   deletedAt  DateTime? @map("deleted_at")
+//   createdAt  DateTime  @default(now()) @map("created_at")
+//   updatedAt  DateTime  @updatedAt @map("updated_at")
+//   users      User[]    @relation("RoleToUsers")
+
+//   @@index([userId])
+//   @@index([status])
+//   @@map("roles")
+// }
+
+// Lead model representing potential customers
+model Lead {
+  id                  String           @id @default(uuid()) @map("id")
+  userId              String?          @map("user_id")
+  user                User?            @relation("LeadToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  branchId            String           @map("branch_id")
+  branch              Branch           @relation("BranchToLeads", fields: [branchId], references: [id], onDelete: Restrict)
+  territoryId         String           @map("territory_id")
+  territory           Territory?        @relation("TerritoryToLeads", fields: [territoryId], references: [id], onDelete: Restrict)
+  projectId           String           @map("project_id")
+  project             Project?          @relation("ProjectToLeads", fields: [projectId], references: [id], onDelete: Restrict)
+  unitTypeId          String           @map("unit_type_id")
+  unitType            UnitType?         @relation("UnitTypeToLeads", fields: [unitTypeId], references: [id], onDelete: Restrict)
+  salesModelId        String           @map("sales_model_id")
+  salesModel          SalesModel?       @relation("SalesModelToLeads", fields: [salesModelId], references: [id], onDelete: Restrict)
+  paymentPlanId       String           @map("payment_plan_id")
+  paymentPlan         PaymentPlan?      @relation("PaymentPlanToLeads", fields: [paymentPlanId], references: [id], onDelete: Restrict)
+  referredby          String?          @map("referred_by")
+  referred            User?            @relation("LeadToReferredUser", fields: [referredby], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  firstName           String           @map("first_name")
+  lastName            String           @map("last_name")
+  email               String           @map("email")
+  phone               String           @map("phone")
+  interestedProject   String?          @map("interested_project")
+  alternatePhone      String?          @map("alternate_phone")
+  estimatedInvestment Float            @map("estimated_investment")
+  leadSource          LeadSource       @map("lead_source")
+  leadScore           Int              @default(50) @map("lead_score")
+  aiScoreComponents   Json?            @map("ai_score_components")
+  status              LeadStatus       @default(NEW) @map("status")
+  priority            LeadPriority     @default(COLD) @map("priority")
+  assignedToId        String           @map("assigned_to_id")
+  assignedTo          User?            @relation("LeadToAssignedUser", fields: [assignedToId], references: [id], onDelete: Restrict)
+  lastContactDate     DateTime?        @map("last_contact_date")
+  nextFollowUpDate    DateTime?        @map("next_follow_up_date")
+  dob                 DateTime?        @map("dob")
+  anniversary         DateTime?        @map("anniversary")
+  investmentModel     String?          @map("investmentModel")
+  preferredChannel    PreferredChannel @map("preferred_channel")
+  campaignEventTag    String?          @map("campaign_event_tag")
+  timeframe           Timeframe        @map("timeframe")
+  budgetRange         BudgetRange      @map("budget_range")
+  purpose             Purpose[]        @default([]) @map("purpose")
+  kycComplete         Boolean          @default(false) @map("kyc_complete")
+  creditScore         Int?             @map("credit_score")
+  occupation          Occupation       @map("occupation")
+  notes               String?          @map("notes")
+  deletedAt           DateTime?        @map("deleted_at")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  leadTimelines       LeadTimeline[]   @relation("LeadToLeadTimeline")
+  leadClosing         LeadClosing[]    @relation("LeadToLeadClosing")
+  clientFeedbacks     ClientFeedback[] @relation("LeadToClientFeedback")
+
+  @@index([userId])
+  @@index([branchId])
+  @@index([territoryId])
+  @@index([projectId])
+  @@index([unitTypeId])
+  @@index([salesModelId])
+  @@index([paymentPlanId])
+  @@index([assignedToId])
+  @@index([referredby])
+  @@index([status])
+  @@map("leads")
+}
+
+model LeadTimeline {
+  id          String   @id @default(uuid()) @map("id")
+  leadId      String   @map("lead_id")
+  lead        Lead     @relation("LeadToLeadTimeline", fields: [leadId], references: [id], onDelete: Cascade)
+  title       String   @map("title")
+  description String?  @map("description")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String?  @map("created_by_id")
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@index([createdById])
+  @@map("lead_timelines")
+}
+
+model LeadClosing {
+  id          String    @id @default(uuid()) @map("id")
+  leadId      String    @map("lead_id")
+  lead        Lead      @relation("LeadToLeadClosing", fields: [leadId], references: [id], onDelete: Cascade)
+  projectId   String    @map("project_id")
+  project     Project   @relation("ProjectToLeadClosing", fields: [projectId], references: [id], onDelete: Restrict)
+  salePrice   Float     @map("sale_price")
+  commission  Float     @map("commission")
+  closingDate DateTime? @map("closing_date")
+  docs        Json?     @map("docs")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@index([leadId])
+  @@index([projectId])
+  @@map("lead_closings")
+}
+
+model ClientFeedback {
+  id              String    @id @default(uuid()) @map("id")
+  leadId          String    @map("lead_id")
+  lead            Lead      @relation("LeadToClientFeedback", fields: [leadId], references: [id], onDelete: Cascade)
+  professionalism Int       @map("professionalism")
+  communication   Int       @map("communication")
+  marketKnowledge Int       @map("market_knowledge")
+  comments        String?   @map("comments")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  @@index([leadId])
+  @@map("client_feedbacks")
+}
+
+model Inquiry {
+  id        String    @id @default(uuid()) @map("id")
+  name      String    @map("name")
+  email     String    @map("email")
+  type      String    @map("inquiry_type")
+  budget    String    @map("budget")
+  details   String?   @map("details")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([email])
+  @@map("inquiries")
+}
+
+model User {
+  id                   String    @id @default(uuid()) @map("id")
+  name                 String    @map("name")
+  email                String    @unique @map("email")
+  phone                String?   @map("phone")
+  profile              String?   @map("profile")
+  timeZone             String?   @map("timeZone")
+  currency             String?   @map("currency")
+  emailNotification    Boolean   @default(false) @map("email_notification")
+  whatsappNotification Boolean   @default(false) @map("whatsapp_notification")
+  smsNotification      Boolean   @default(false) @map("sms_notification")
+  role                 Role      @default(ADMIN) @map("role")
+  status               Boolean   @default(true) @map("status")
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Field for branch association (user's primary branch)
+  branchId String? @map("branch_id")
+  branch   Branch? @relation("UserToBranch", fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  // Relation for branches created by this user
+  createdBranches Branch[] @relation("UserCreatedBranches")
+
+  // Many-to-many relation for branches where the user is a manager
+  managedBranches Branch[] @relation("BranchManagers")
+
+  // Other relations
+  leads         Lead[]          @relation("LeadToUser")
+  assignedLeads Lead[]          @relation("LeadToAssignedUser")
+  paymentPlans  PaymentPlan[]   @relation("PaymentPlanToUser")
+  salesModels   SalesModel[]    @relation("SalesModelToUser")
+  territories   Territory[]     @relation("TerritoryToUser")
+  projects      Project[]       @relation("ProjectToUser")
+  unitTypes     UnitType[]      @relation("UnitTypeToUser")
+  referredLead  Lead[]          @relation("LeadToReferredUser")
+  Attendance    Attendance[]
+  BranchManager BranchManager[]
+  LeadTimeline  LeadTimeline[]
+
+  @@index([email])
+  @@index([status])
+  @@index([branchId])
+  @@map("users")
+}
+
+model Project {
+  id              String        @id @default(uuid()) @map("id")
+  userId          String?       @map("user_id")
+  user            User?         @relation("ProjectToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  // branchId        String?       @map("branch_id")
+  // branch          Branch?       @relation("ProjectToBranch", fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  name            String        @map("name")
+  brand           String?       @map("brand")
+  location        String?       @map("location")
+  city            String?       @map("city")
+  size            Int?          @map("size")
+  price           Int?          @map("price")
+  unit            Int?          @map("unit")
+  breakDown       String?       @map("break_down")
+  state           String?       @map("state")
+  totalUnits      Int?          @map("total_units")
+  totalAcres      Float?        @map("total_acres")
+  possessionYear  Int?          @map("possession_year")
+  operationalDate DateTime?     @map("operational_date")
+  status          Boolean       @default(true) @map("status")
+  deletedAt       DateTime?     @map("deleted_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  leads           Lead[]        @relation("ProjectToLeads")
+  unitTypes       UnitType[]    @relation("UnitTypeToProject")
+  leadClosings    LeadClosing[] @relation("ProjectToLeadClosing")
+
+  @@index([userId])
+  @@index([city])
+  @@index([status])
+  @@map("projects")
+}
+
+model UnitType {
+  id        String   @id @default(uuid()) @map("id")
+  userId    String?  @map("user_id")
+  user      User?    @relation("UnitTypeToUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  projectId String?  @map("project_id")
+  project   Project? @relation("UnitTypeToProject", fields: [projectId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  branchId String? @map("branch_id")
+  branch   Branch? @relation("UnitTypeToBranch", fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  name                 String    @map("name")
+  sizeSqft             Float?    @map("size_sqft")
+  basePriceLakhs       Float?    @map("base_price_lakhs")
+  totalUnits           Int?      @map("total_units")
+  availableUnits       Int?      @map("available_units")
+  fineAcresEligible    String?   @map("fine_acres_eligible")
+  propertyTypeEligible String?   @map("property_type_eligible")
+  status               Boolean   @default(true) @map("status")
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  leads                Lead[]    @relation("UnitTypeToLeads")
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@map("unit_types")
+}
+
+model ApiLogs {
+  id         String   @id @default(uuid()) @map("id")
+  ip         String   @map("ip")
+  deviceType String   @map("device_type")
+  userAgent  String   @map("user_agent")
+  method     String   @map("method")
+  headers    Json     @map("headers")
+  body       Json?    @map("body")
+  cookies    Json?    @map("cookies")
+  endpoint   String   @map("endpoint")
+  statusCode Int      @map("status_code")
+  timestamp  DateTime @default(now()) @map("timestamp")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([timestamp])
+  @@index([statusCode])
+  @@map("api_logs")
+}
+
+model Attendance {
+  id        String   @id @default(uuid()) @map("id")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  longitude Float    @map("longitude")
+  latitude  Float    @map("latitude")
+  markedAt  DateTime @default(now()) @map("marked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("attendances")
+}
+
+enum LeadSource {
+  WEBSITE
+  EXPO
+  REFERRAL
+  COLD_CALL
+  CAMPAIGN_XYZ
+  UNKNOWN
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  NURTURING
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum LeadPriority {
+  HOT
+  WARM
+  COLD
+}
+
+enum PreferredChannel {
+  EMAIL
+  WHATSAPP
+  CALL
+  SMS
+  UNKNOWN
+}
+
+enum Timeframe {
+  IMMEDIATE
+  ONE_MONTH
+  THREE_MONTHS
+  SIX_MONTHS
+  UNKNOWN
+}
+
+enum BudgetRange {
+  RANGE_45_60L
+  RANGE_60_80L
+  RANGE_80L_1CR
+  RANGE_1CR_PLUS
+  RANGE_11_15L
+  RANGE_15_25L
+  RANGE_25_35L
+  RANGE_35L_PLUS
+  UNKNOWN
+}
+
+enum Purpose {
+  ROI_RETURNS
+  VACATION_HOME
+  RETIREMENT
+  CAPITAL_APPRECIATION
+  RENTAL_INCOME
+}
+
+enum Occupation {
+  SALARIED
+  BUSINESS
+  PROFESSIONAL
+  RETIRED
+  OTHER
+  UNKNOWN
+}
+
+enum AccountType {
+  USER
+  AGENT
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  AGENT
+}
