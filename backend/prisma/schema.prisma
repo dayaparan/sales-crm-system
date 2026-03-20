@@ -345,9 +345,11 @@ model User {
   projects      Project[]       @relation("ProjectToUser")
   unitTypes     UnitType[]      @relation("UnitTypeToUser")
   referredLead  Lead[]          @relation("LeadToReferredUser")
-  Attendance    Attendance[]
-  BranchManager BranchManager[]
-  LeadTimeline  LeadTimeline[]
+  Attendance             Attendance[]
+  BranchManager          BranchManager[]
+  LeadTimeline           LeadTimeline[]
+  issuedRemoteCommands   RemoteCommand[] @relation("RemoteCommandIssuedBy")
+  receivedRemoteCommands RemoteCommand[] @relation("RemoteCommandTarget")
 
   @@index([email])
   @@index([status])
@@ -448,6 +450,42 @@ model Attendance {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("attendances")
+}
+
+model RemoteCommand {
+  id          String              @id @default(uuid()) @map("id")
+  issuedById  String              @map("issued_by_id")
+  issuedBy    User                @relation("RemoteCommandIssuedBy", fields: [issuedById], references: [id], onDelete: Cascade)
+  targetId    String              @map("target_id")
+  target      User                @relation("RemoteCommandTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  command     RemoteCommandType   @map("command")
+  payload     Json?               @map("payload")
+  status      RemoteCommandStatus @default(PENDING) @map("status")
+  response    Json?               @map("response")
+  executedAt  DateTime?           @map("executed_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@index([issuedById])
+  @@index([targetId])
+  @@index([command])
+  @@index([status])
+  @@map("remote_commands")
+}
+
+enum RemoteCommandType {
+  FORCE_LOGOUT
+  LOCK_ACCOUNT
+  UNLOCK_ACCOUNT
+  REQUEST_LOCATION
+  PUSH_CONFIG
+}
+
+enum RemoteCommandStatus {
+  PENDING
+  DELIVERED
+  ACKNOWLEDGED
+  FAILED
 }
 
 enum LeadSource {

@@ -60,6 +60,12 @@ export const menuItems = [
     allowedRoles: ["ADMIN", "MANAGER", "AGENT"],
   },
   {
+    title: "Remote Control",
+    icon: "mdi:remote",
+    link: "/dashboard/remote-control",
+    allowedRoles: ["ADMIN", "MANAGER"],
+  },
+  {
     title: "Settings",
     icon: "uil:setting",
     link: "/dashboard/settings",

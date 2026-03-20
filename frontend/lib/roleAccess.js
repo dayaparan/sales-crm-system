@@ -28,6 +28,7 @@ export const roleAccess = {
     /^\/dashboard\/lead\/[0-9a-fA-F-]{36}\/edit$/,
     "/dashboard/lead",
     "/dashboard/inquiry-form",
+    "/dashboard/remote-control",
   ],
   MANAGER: [
     "/dashboard",
@@ -54,6 +55,7 @@ export const roleAccess = {
     "/dashboard/lead/add",
     /^\/dashboard\/lead\/[0-9a-fA-F-]{36}\/edit$/,
     "/dashboard/settings",
+    "/dashboard/remote-control",
   ],
   AGENT: [
     "/dashboard",

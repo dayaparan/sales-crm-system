@@ -12,6 +12,7 @@ import salesModelRouter from './salesModel.js';
 import paymentPlanRouter from './paymentPlan.js';
 import leadRouter from './lead.js';
 import attendanceRouter from './attendance.js';
+import remoteControlRouter from './remoteControl.js';
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use('/salesModel', salesModelRouter);
 router.use('/paymentPlan', paymentPlanRouter);
 router.use('/lead', leadRouter);
 router.use('/attendance', attendanceRouter);
+router.use('/remote-control', remoteControlRouter);
 
 export default router;
